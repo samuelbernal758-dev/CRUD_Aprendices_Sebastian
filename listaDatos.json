@@ -1,0 +1,16 @@
+[
+ {
+    "nombre":"Juan",
+    "apellidos": "Henao",
+    "edad": 17,
+    "correo": "henao@gmail.com",
+    "imgperfil":"url"
+ },
+ {
+    "nombre":"Junito",
+    "apellidos": "Ben10",
+    "edad": 17,
+    "correo": "juanito@gmail.com",
+    "imgperfil":"url" 
+ }
+]
