@@ -1,110 +1,307 @@
 const express = require('express');
 const app = express();
-require("dotenv/config")
-const port = process.env.PORT || 3030  ;
-
-//librerias
-const sistemadeArchivo = require('fs'); //  fs(filesistem) = sistemadeArchivo
-const ruta = require('path'); // path = ruta
-
-const rutaArchivoJson = ruta.join(__dirname, 'listaDatos.json');
+require('dotenv/config');
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.get("/", (req,  res) => {
-    res.send('API RESTFUL - CRUD Aprendices')
+// Librerías para leer y manejar archivos
+const sistemaArchivo = require('fs');
+const ruta = require('path');
+
+// Importar las validaciones
+const validarAprendiz = require('./validaciones/validar');
+
+// Ruta del archivo listaDatos.json
+const rutaArchivoJson = ruta.join(__dirname, 'listaDatos.json');
+
+
+app.get('/', (req, res) => {
+    res.send('API RESTFUL - CRUD Aprendices');
 });
 
-app.get("/aprendices", (req, res) => {
-    //const listaaprendices = []
-    sistemadeArchivo.readFile(rutaArchivoJson, 'utf8', (error, datos) => { //utf8 = para leer tildes, etc
+app.get('/api/aprendices', (req, res) => {
+
+    sistemaArchivo.readFile(rutaArchivoJson, 'utf-8', (error, datos) => {
+
         if (error) {
-            res.status(500).json ({Error: "Error al leer el archivo"});
+            return res.status(500).json({
+                Error: 'Error al leer el archivo'
+            });
         }
 
-        const listaaprendices = JSON.parse(datos); //parse = tranformar a json
-        res.json(listaaprendices)
+        try {
+
+            const listaAprendices = JSON.parse(datos);
+
+            res.json(listaAprendices);
+
+        } catch (error) {
+
+            res.status(500).json({
+                Error: 'Error al procesar el archivo JSON'
+            });
+        }
     });
-})
+});
+
+app.get('/api/aprendices/:dni', (req, res) => {
+
+    const dni = parseInt(req.params.dni);
+
+    sistemaArchivo.readFile(rutaArchivoJson, 'utf-8', (error, datos) => {
+
+        if (error) {
+            return res.status(500).json({
+                Error: 'Error al leer el archivo'
+            });
+        }
+
+        try {
+
+            const listaAprendices = JSON.parse(datos);
+
+            const aprendiz = listaAprendices.find(
+                aprendiz => aprendiz.dni === dni
+            );
+
+            if (!aprendiz) {
+                return res.status(404).json({
+                    Error: 'Aprendiz no encontrado'
+                });
+            }
+
+            res.json(aprendiz);
+
+        } catch (error) {
+
+            res.status(500).json({
+                Error: 'Error al procesar el archivo JSON'
+            });
+        }
+    });
+});
+
+app.post('/api/aprendices', (req, res) => {
+
+    const datoAprendiz = req.body;
+
+    // Validar datos
+    const errorValidacion = validarAprendiz(datoAprendiz);
+
+    if (errorValidacion) {
+        return res.status(400).json({
+            Error: errorValidacion
+        });
+    }
+
+    sistemaArchivo.readFile(
+        rutaArchivoJson,
+        'utf-8',
+        (error, datos) => {
+
+            if (error) {
+                return res.status(500).json({
+                    Error: 'Error al leer el archivo'
+                });
+            }
+
+            try {
+
+                const listaAprendices = JSON.parse(datos);
+
+                // Generar DNI automáticamente
+                let nuevoDni = 1;
+
+                if (listaAprendices.length > 0) {
+                    nuevoDni =
+                        Math.max(
+                            ...listaAprendices.map(
+                                aprendiz => aprendiz.dni || 0
+                            )
+                        ) + 1;
+                }
+
+                // Crear nuevo aprendiz
+                const nuevoAprendiz = {
+                    dni: nuevoDni,
+                    ...datoAprendiz
+                };
+
+                // Agregar aprendiz
+                listaAprendices.push(nuevoAprendiz);
+
+                // Guardar archivo
+                sistemaArchivo.writeFile(
+                    rutaArchivoJson,
+                    JSON.stringify(listaAprendices, null, 2),
+                    error => {
+
+                        if (error) {
+                            return res.status(500).json({
+                                Error: 'No se puede registrar el aprendiz'
+                            });
+                        }
+
+                        res.status(201).json(nuevoAprendiz);
+                    }
+                );
+
+            } catch (error) {
+
+                res.status(500).json({
+                    Error: 'Error al procesar el archivo JSON'
+                });
+            }
+        }
+    );
+});
+
+app.put('/api/aprendices/:dni', (req, res) => {
+
+    const dni = parseInt(req.params.dni);
+    const datosAprendiz = req.body;
+
+    // Validar datos
+    const errorValidacion = validarAprendiz(datosAprendiz);
+
+    if (errorValidacion) {
+        return res.status(400).json({
+            Error: errorValidacion
+        });
+    }
+
+    sistemaArchivo.readFile(
+        rutaArchivoJson,
+        'utf-8',
+        (error, datos) => {
+
+            if (error) {
+                return res.status(500).json({
+                    Error: 'Error al leer el archivo'
+                });
+            }
+
+            try {
+
+                let listaAprendices = JSON.parse(datos);
+
+                const existeAprendiz = listaAprendices.some(
+                    aprendiz => aprendiz.dni === dni
+                );
+
+                if (!existeAprendiz) {
+                    return res.status(404).json({
+                        Error: 'Aprendiz no encontrado'
+                    });
+                }
+
+                // Modificar aprendiz
+                listaAprendices = listaAprendices.map(
+                    aprendiz =>
+                        aprendiz.dni === dni
+                            ? {
+                                ...aprendiz,
+                                ...datosAprendiz,
+                                dni: dni
+                            }
+                            : aprendiz
+                );
+
+                // Guardar cambios
+                sistemaArchivo.writeFile(
+                    rutaArchivoJson,
+                    JSON.stringify(listaAprendices, null, 2),
+                    error => {
+
+                        if (error) {
+                            return res.status(500).json({
+                                Error: 'No se puede actualizar el aprendiz'
+                            });
+                        }
+
+                        const aprendizActualizado =
+                            listaAprendices.find(
+                                aprendiz => aprendiz.dni === dni
+                            );
+
+                        res.json(aprendizActualizado);
+                    }
+                );
+
+            } catch (error) {
+
+                res.status(500).json({
+                    Error: 'Error al procesar el archivo JSON'
+                });
+            }
+        }
+    );
+});
+
+app.delete('/api/aprendices/:dni', (req, res) => {
+
+    const dni = parseInt(req.params.dni);
+
+    sistemaArchivo.readFile(
+        rutaArchivoJson,
+        'utf-8',
+        (error, datos) => {
+
+            if (error) {
+                return res.status(500).json({
+                    Error: 'Error al leer el archivo'
+                });
+            }
+
+            try {
+
+                let listaAprendices = JSON.parse(datos);
+
+                const existeAprendiz = listaAprendices.some(
+                    aprendiz => aprendiz.dni === dni
+                );
+
+                if (!existeAprendiz) {
+                    return res.status(404).json({
+                        Error: 'Aprendiz no encontrado'
+                    });
+                }
+
+                // Eliminar aprendiz
+                listaAprendices = listaAprendices.filter(
+                    aprendiz => aprendiz.dni !== dni
+                );
+
+                // Guardar archivo actualizado
+                sistemaArchivo.writeFile(
+                    rutaArchivoJson,
+                    JSON.stringify(listaAprendices, null, 2),
+                    error => {
+
+                        if (error) {
+                            return res.status(500).json({
+                                Error: 'No se puede eliminar el aprendiz'
+                            });
+                        }
+
+                        res.json({
+                            mensaje: 'Aprendiz eliminado correctamente'
+                        });
+                    }
+                );
+
+            } catch (error) {
+
+                res.status(500).json({
+                    Error: 'Error al procesar el archivo JSON'
+                });
+            }
+        }
+    );
+});
+
 
 app.listen(port, () => {
-    console.log(`Servidor en funcionamiento en el puerto: http://localhost:${port}`)
+    console.log(`SERVER: http://localhost:${port}`);
 });
-
-
-
-
-/*
-const listaaprendices = [{
-        "nombre":"Juan",
-        "edad": 17,
-        "correo": "henao@gmail.com",
-        "imgperfil":"url"
-    },
-    {
-        "nombre":"Sebastian",
-        "edad": 17,
-        "correo": "Loaiza@gmail.com",
-        "imgperfil":"url"
-    },
-    {
-        "nombre":"Samuel",
-        "edad": 16,
-        "correo": "Bravobernal@gmail.com",
-        "imgperfil":"url"
-    }]
-
-app.get("/", (_,  res) => {
-    res.send('Hola, estamos aprendiendo expreess con la ficha 3407184')
-});
-app.get("/aprendices", (req, res) =>{
-    res.json(listaaprendices)
-})
-app.get('/aprendices/:nombre', (req, res) => {
-  const nombreBuscado = req.params.nombre.toLowerCase();
-
-  const aprendizencontrado = listaaprendices.find(
-    (aprendiz) => aprendiz.nombre.toLowerCase() === nombreBuscado
-  );
-
-  res.json(aprendizencontrado);
-});
-app.post('/aprendicescreado', (req, res) => {
-    const { nombre, edad, correo, imgperfil } = req.body;
-    
-    if (typeof nombre !== 'string' || nombre.trim().length < 3) {
-        return res.status(400).json({ "error": "El nombre como mínimo necesita 3 letras" });
-    }
-    
-    if (typeof correo !== 'string' || !correo.includes('@')) {
-        return res.status(400).json({ "error": "El correo necesita @" });
-    }
-    
-    const datosAprendiz = { nombre, edad, correo, imgperfil };
-    listaaprendices.push(datosAprendiz);
-    
-    return res.status(201).json({ "mensaje": "Aprendiz creado", "Datos": datosAprendiz });
-});
-
-app.put('/aprendizeditado/:nombre', (req, res) => {
-    const nombreBuscado = req.params.nombre.toLowerCase();
-    const nuevosDatos = req.body;
-
-    const aprendiz = listaaprendices.find(
-        (a) => a.nombre.toLowerCase() === nombreBuscado
-    );
-
-    Object.assign(aprendiz, nuevosDatos);
-    res.json({"mensaje": 'Aprendiz editado con éxito',"Datos": aprendiz});
-});
-
-app.delete('/aprendizeliminado/:nombre', (req, res) =>{
-    const nombreBuscado = req.params.nombre.toLowerCase();
-    const indice = listaaprendices.findIndex(
-        (aprendiz) => aprendiz.nombre.toLowerCase() === nombreBuscado
-    );
-    const [aprendizEliminado] = listaaprendices.splice(indice, 1);
-    res.json({mensaje: 'Aprendiz eliminado con éxito',"Datos": aprendizEliminado});
-})
-*/
-
