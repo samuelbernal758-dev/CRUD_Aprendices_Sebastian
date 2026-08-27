@@ -1,24 +1,4 @@
-[
-  {
-    "dni": 1,
-    "nombre": "Juan",
-    "apellidos": "Henao",
-    "edad": 17,
-    "correo": "henao@gmail.com",
-    "imgperfil": "url"
-  },
-  {
-    "dni": "4073596738",
-    "nombre": "Juan",
-    "correo": "henao@gmail.com",
-    "edad": 17,
-    "imgperfil": "url"
-  },
-  {
-    "dni": "2641593101",
-    "nombre": "Juan",
-    "correo": "henao@gmail.com",
-    "edad": 17,
-    "imgperfil": "url"
-  }
-]
+{
+    "usuario" : "aprendiz",
+    "clave":"1234"
+}
