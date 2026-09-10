@@ -8,18 +8,18 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
 
-app.use ((req, res, next) => {
-    const tiempoMilisegundos = Date.now()
-    console.log(`Tiempo: ${tiempoMilisegundos}`)
-    next()
-})
-
 const multer = require('multer')
 const almacenamiento = multer.diskStorage({
     destination: (request, file, cb) =>{},
     filename: {}
 })
 app.use(registroMiddleware)
+
+app.use ((req, res, next) => {
+    const tiempoMilisegundos = Date.now()
+    console.log(`Tiempo: ${tiempoMilisegundos}`)
+    next()
+})
 
 // Librerías para leer y manejar archivos
 const sistemaArchivo = require('fs');
