@@ -1,12 +1,12 @@
 const express = require('express');
 const registroMiddleware = require('./middleware/registroMiddleware')
-
+const manejadorErrores = require('./middleware/manejadorErrores')
 const app = express();
 require('dotenv/config');
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.urlencoded({extended:true}))
+    app.use(express.urlencoded({extended:true}))
 
 const multer = require('multer')
 const almacenamiento = multer.diskStorage({
@@ -268,6 +268,12 @@ app.delete('/api/aprendices/:dni', (req, res) => {
         }
     );
 });
+
+app.get("/error", (req, res, next) => {
+    next(new Error ("Error provocado"))
+})
+
+app.use(manejadorErrores)
 
 app.listen(port, () => {
     console.log(`SERVER: http://localhost:${port}`);
