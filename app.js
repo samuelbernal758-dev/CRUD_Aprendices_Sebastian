@@ -1,6 +1,7 @@
 const express = require('express');
 const registroMiddleware = require('./middleware/registroMiddleware')
 const manejadorErrores = require('./middleware/manejadorErrores')
+const autenticarToken = require('./middleware/autenticarToken')
 const app = express();
 require('dotenv/config');
 const port = process.env.PORT || 3000;
@@ -271,6 +272,10 @@ app.delete('/api/aprendices/:dni', (req, res) => {
 
 app.get("/error", (req, res, next) => {
     next(new Error ("Error provocado"))
+})
+
+app.get("/rutaProtegida", autenticarToken , (req, res) => {
+    res.json({mensaje: "Este es una ruta protegida"})
 })
 
 app.use(manejadorErrores)
