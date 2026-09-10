@@ -2,6 +2,7 @@ const express = require('express');
 const registroMiddleware = require('./middleware/registroMiddleware')
 const manejadorErrores = require('./middleware/manejadorErrores')
 const autenticarToken = require('./middleware/autenticarToken')
+const jswtoken = require("jsonwebtoken")
 const app = express();
 require('dotenv/config');
 const port = process.env.PORT || 3000;
@@ -276,6 +277,22 @@ app.get("/error", (req, res, next) => {
 
 app.get("/rutaProtegida", autenticarToken , (req, res) => {
     res.json({mensaje: "Este es una ruta protegida"})
+})
+
+app.post("/login", (req, res) =>{
+    const {usuario, clave} = req.body
+    const usuariobd = {
+        "usuario": "jhonny",
+        "clave": "abc123"   
+    }
+    if(usuario !== usuariobd.usuario || clave !== usuariobd.clave){
+        res.json({mensaje: "Usuario y/o clave incorrectos. "})
+    }
+    const token = jswtoken.sign(
+        process.env.JWT_SECRET,
+        {expiresIn: "1h"}
+    )
+    res.json({token}) 
 })
 
 app.use(manejadorErrores)
