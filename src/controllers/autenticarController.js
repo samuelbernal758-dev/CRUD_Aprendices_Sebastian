@@ -1,5 +1,6 @@
 const jswtoken = require("jsonwebtoken")
 
+
 const iniciarSesion = async (req, res) => {
     const { usuario, clave } = req.body
     const usuariobd = {
@@ -18,3 +19,5 @@ const iniciarSesion = async (req, res) => {
 
     res.json({ token }) 
 }
+
+module.exports = iniciarSesion
