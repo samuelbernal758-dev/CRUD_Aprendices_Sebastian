@@ -6,4 +6,5 @@ enrutador.get("/", (req, res)=>{
     res.json({mensaje: "Ruta de prueba 3407184"})
 })
 
+
 module.exports = enrutador
