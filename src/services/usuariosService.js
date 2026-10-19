@@ -6,8 +6,15 @@ const listarTodo = async() => {
     return datos
 }
 
-const crear = () => {
-
-}
+const crear = async (email, usuario, clave) => {
+    const nuevoUsuario = await ormPrisma.Usuarios.create({
+        data: {
+            usuario:usuario,
+            email:email,
+            clave:clave
+        }
+    });
+    return nuevoUsuario;
+};
 
 module.exports = {listarTodo, crear};
