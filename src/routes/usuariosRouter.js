@@ -1,10 +1,8 @@
-const {Router} = require("express")
+const {Router} = require("express");
+const enrutador = Router();
+const {listarUsuarios, crearUsuario } = require("../controllers/usuariosController");
 
-const enrutador = Router()
+enrutador.get("/listado", listarUsuarios)
+enrutador.post("/crear", crearUsuario)
 
-enrutador.get("/usuarios", (req, res)=>{
-    res.json({mensaje: "Lista de usuarios"})
-})
-
-
-module.exports = enrutador
+module.exports = enrutador;

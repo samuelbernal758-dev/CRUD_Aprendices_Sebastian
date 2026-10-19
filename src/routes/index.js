@@ -8,7 +8,7 @@ const enrutador = Router()
 
 enrutador.use("/rutaPrueba", pruebaRouter)
 enrutador.use("/autenticar", autenticarRouter)
-enrutador.use("/listado", usuariosRouter)
+enrutador.use("/usuarios", usuariosRouter)
 
 module.exports = enrutador
 
