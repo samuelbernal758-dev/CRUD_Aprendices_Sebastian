@@ -6,12 +6,12 @@ const listarTodo = async() => {
     return datos
 }
 
-const crear = async (email, usuario, clave) => {
+const crear = async ({ email, usuario, clave }) => { 
     const nuevoUsuario = await ormPrisma.Usuarios.create({
         data: {
-            usuario:usuario,
-            email:email,
-            clave:clave
+            email,   
+            usuario,  
+            clave    
         }
     });
     return nuevoUsuario;
